@@ -1,0 +1,240 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <learnopengl/shader.h>
+#include <learnopengl/camera.h>
+#include <learnopengl/model.h>
+
+#include <iostream>
+#include <vector>
+#include <random>
+
+#define STB_IMAGE_IMPLEMENTATION 
+#include <learnopengl/stb_image.h>
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow* window);
+
+// settings
+const unsigned int SCR_WIDTH = 1000;
+const unsigned int SCR_HEIGHT = 800;
+
+// camera
+Camera camera(glm::vec3(0.0f, 3.7f, -11.0f));
+
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+// movement control
+bool movingForward = false;
+bool cameraStopped = false;
+
+// Obstacle structure
+struct Obstacle {
+    glm::vec3 position;
+    glm::vec3 scale;
+    Model* model; // Pointer to Model to avoid copying
+};
+
+const float LEFT_LIMIT = -27.0f;
+const float RIGHT_LIMIT = 13.0f;
+// List of obstacles
+std::vector<Obstacle> obstacles;
+
+// Function to initialize obstacles
+void InitializeObstacles(Model& obstacleModel) {
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> distribution(LEFT_LIMIT, RIGHT_LIMIT);
+
+    for (int i = 0; i < 10; ++i) {
+        Obstacle obstacle;
+        obstacle.position = glm::vec3(distribution(generator), 0.07f, -float(i * 20)); // Random x, fixed y, increasing z
+        obstacle.scale = glm::vec3(6.0f, 6.0f, 6.0f); // Scale of the obstacle
+        obstacle.model = &obstacleModel; // Use pointer to the model
+
+        obstacles.push_back(obstacle);
+    }
+}
+
+// Function to update obstacles
+void UpdateObstacles(float deltaTime, glm::vec3 carPosition) {
+    for (auto& obstacle : obstacles) {
+        obstacle.position.z += deltaTime * 5.0f; // Move obstacles forward
+
+        if (obstacle.position.z > carPosition.z + 50.0f) {
+            obstacle.position.z = carPosition.z - 50.0f;
+            obstacle.position.x = LEFT_LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (RIGHT_LIMIT - LEFT_LIMIT)));
+        }
+    }
+}
+
+
+int main()
+{
+    // glfw: initialize and configure
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef APPLE
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    // glfw window creation
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "RacerX", NULL, NULL);
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    // glad: load all OpenGL function pointers
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    // configure global opengl state
+    glEnable(GL_DEPTH_TEST);
+
+    // build and compile shaders
+    Shader ourShader("shaders/shader_exercise16_mloading.vs", "shaders/shader_exercise16_mloading.fs");
+
+    // load models
+    Model objetoModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/carro/carro.obj");
+    Model pistaModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/pista/pista.obj");
+    Model llegadaModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/llegada/llegada.obj");
+    Model obstaculoModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/obstaculo/obstaculo.obj");
+
+    // Initialize obstacles
+    InitializeObstacles(obstaculoModel);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(window);
+
+        if (!cameraStopped)
+        {
+            camera.MovementSpeed += 0.5f * deltaTime;
+        }
+
+        if (movingForward && !cameraStopped)
+        {
+            camera.ProcessKeyboard(FORWARD, deltaTime);
+
+            if (camera.Position.z <= -7075.0f && camera.Position.x <= 10000.0f)
+            {
+                cameraStopped = true;
+                camera.MovementSpeed = 0.0f;
+            }
+        }
+
+        // Update obstacles
+        UpdateObstacles(deltaTime, camera.Position);
+
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ourShader.use();
+
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);
+
+        // Render the car model
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, camera.Position + glm::vec3(0.0f, -3.0f, -12.0f));
+        ourShader.setMat4("model", model);
+        objetoModel.Draw(ourShader);
+
+        // Render the pista model
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -3475.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+        ourShader.setMat4("model", model);
+        pistaModel.Draw(ourShader);
+
+        // Render the llegada model
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -7075.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+        ourShader.setMat4("model", model);
+        llegadaModel.Draw(ourShader);
+
+        // Render obstacles
+        for (const auto& obstacle : obstacles) {
+            glm::mat4 modelObstacle = glm::mat4(1.0f);
+            modelObstacle = glm::translate(modelObstacle, obstacle.position);
+            modelObstacle = glm::scale(modelObstacle, obstacle.scale);
+            ourShader.setMat4("model", modelObstacle);
+            obstacle.model->Draw(ourShader); // Use pointer to call Draw
+        }
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return 0;
+}
+
+
+
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        movingForward = true;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        glm::vec3 position = camera.Position;
+        if (position.x > LEFT_LIMIT)
+            camera.ProcessKeyboard(LEFT, deltaTime);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        glm::vec3 position = camera.Position;
+        if (position.x < RIGHT_LIMIT)
+            camera.ProcessKeyboard(RIGHT, deltaTime);
+    }
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(yoffset);
+}
