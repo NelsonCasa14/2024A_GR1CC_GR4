@@ -1,0 +1,79 @@
+# Blender 4.2.0 MTL File: 'None'
+# www.blender.org
+
+newmtl BWheel
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd BWheel_baseColor.jpeg
+map_Bump -bm 1.000000 FWheel_normal.jpeg
+
+newmtl Cockpit
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Cockpit_baseColor.jpeg
+map_Ke Cockpit_emissive.jpeg
+map_Bump -bm 1.000000 Cockpit_normal.jpeg
+
+newmtl Exhaust
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Exhaust_baseColor.jpeg
+map_Bump -bm 1.000000 Exhaust_normal.jpeg
+
+newmtl Exterior
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Exterior_baseColor.jpeg
+map_Bump -bm 1.000000 Exterior_normal.jpeg
+
+newmtl FWheel
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd FWheel_baseColor.jpeg
+map_Bump -bm 1.000000 FWheel_normal.jpeg
+
+newmtl Glass
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Glass_baseColor.jpeg
+map_Bump -bm 1.000000 Glass_normal.jpeg
+
+newmtl Seat
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Seat_baseColor.jpeg
+map_Bump -bm 1.000000 Seat_normal.jpeg
