@@ -17,7 +17,6 @@
 #include <random>
 
 
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
@@ -59,8 +58,6 @@ const float LEFT_LIMIT = -27.0f;
 const float RIGHT_LIMIT = 13.0f;
 
 std::vector<Obstacle> obstacles;
-
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 void InitializeObstacles() {
     obstacles.clear();
@@ -129,14 +126,15 @@ int main()
 
     Shader ourShader("shaders/shader_exercise16_mloading.vs", "shaders/shader_exercise16_mloading.fs");
 
-    Model objetoModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/carro/carro.obj");
-    Model pistaModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/pista/pista.obj");
-    Model llegadaModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/llegada/llegada.obj");
-    Model textoModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/textojuego/textojuego.obj");
-    Model controlesModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/controles/controles.obj");
-    Model moonModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/moon/moon.obj");
-    Model gameoverModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/gameover/gameover.obj");
-    Model winnerModel("C:/Users/Marcela/Documents/Visual Studio 2022/OpenGL/OpenGL/Modelo/winner/winner.obj");
+    Model objetoModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/carro/carro.obj");
+    Model pistaModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/pista/pista.obj");
+    Model llegadaModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/llegada/llegada.obj");
+    Model textoModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/textojuego/textojuego.obj");
+    Model controlesModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/controles/controles.obj");
+    Model moonModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/moon/moon.obj");
+    Model gameoverModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/gameover/gameover.obj");
+    Model winnerModel("C:/Users/PC/Documents/Visual Studio 2022/OpenGL/OpenGL/model/winner/winner.obj");
+
     InitializeObstacles();
 
     float vertices[] = {
@@ -203,10 +201,11 @@ int main()
     glEnableVertexAttribArray(2);
 
     unsigned int diffuseMap = loadTexture("textures/container2.png");
+    unsigned int specularMap = loadTexture("textures/container2_specular.png");
 
     ourShader.use();
     ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-    ourShader.setVec3("lightPos", lightPos);
+
 
     while (!glfwWindowShouldClose(window))
     {
@@ -314,9 +313,11 @@ int main()
 
         ourShader.use();
         ourShader.setInt("texture_diffuse1", 0);
-
+        ourShader.setInt("texture_specular1", 1);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
 
         glBindVertexArray(cubeVAO);
         for (const auto& obstacle : obstacles) {
